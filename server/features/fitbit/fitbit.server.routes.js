@@ -24,7 +24,7 @@ module.exports = (app, passport) => {
     };
 
     let options = {
-      url: 'https://api.fitbit.com/1/user/-/activities/steps/date/today/7d.json',
+      url: 'https://api.fitbit.com/1/user/-/activities/date/today.json',
       method: 'GET',
       headers: {
         "Authorization": `Bearer ${userCredentials.accessToken}`
