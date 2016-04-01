@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const cors       = require('cors');
 const session    = require('express-session');
 
-module.exports = function () {
+module.exports = () => {
 
   let app = express();
 
