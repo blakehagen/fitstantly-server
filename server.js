@@ -17,8 +17,8 @@ app.get('/api/test', (req, res) => {
   res.status(200).send('This is working -- ' + new Date());
 });
 
-// PATH TO AUTH ROUTES //
-require('./server/features/fitbitAuth/fitbitAuth.server.routes')(app, passport);
+// PATH TO FITBIT ROUTES //
+require('./server/features/fitbit/fitbit.server.routes')(app, passport);
 
 // PORT //
 let port = process.env.PORT || 8100;
