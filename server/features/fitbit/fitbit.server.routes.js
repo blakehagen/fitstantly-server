@@ -1,5 +1,6 @@
 'use strict';
 
+const _               = require('lodash');
 const request         = require('request');
 const Promise         = require('bluebird');
 const BRequest        = Promise.promisify(request, {multiArgs: true});
@@ -18,69 +19,51 @@ module.exports = (app, passport) => {
 
   app.get('/auth/fitbit/success', (req, res) => {
 
-    let userCredentials = {
+    const userCredentials = {
       userId: req.user.profile.id,
       accessToken: req.user.accessToken,
       refreshToken: req.user.refreshToken
     };
 
-    let fitbitResults  = [];
-    let fitbitRequests = [
-      {
-        url: FITBIT_BASE_URL + '/profile.json',
-        method: 'GET',
-        headers: {
-          "Authorization": `Bearer ${userCredentials.accessToken}`
-        }
-      },
-      {
-        url: FITBIT_BASE_URL + '/activities/date/today.json',
-        method: 'GET',
-        headers: {
-          "Authorization": `Bearer ${userCredentials.accessToken}`
-        }
-      },
-      {
-        url: FITBIT_BASE_URL + '/activities/steps/date/today/7d.json',
-        method: 'GET',
-        headers: {
-          "Authorization": `Bearer ${userCredentials.accessToken}`
-        }
-      },
-      {
-        url: FITBIT_BASE_URL + '/activities/minutesVeryActive/date/today/7d.json',
-        method: 'GET',
-        headers: {
-          "Authorization": `Bearer ${userCredentials.accessToken}`
-        }
-      },
-      {
-        url: FITBIT_BASE_URL + '/activities.json',
-        method: 'GET',
-        headers: {
-          "Authorization": `Bearer ${userCredentials.accessToken}`
-        }
+    const BASE_OPTIONS = {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${userCredentials.accessToken}`
       }
-    ];
+    };
 
+    const profileOptions           = _.cloneDeep(BASE_OPTIONS);
+    profileOptions.url             = `${FITBIT_BASE_URL}/profile.json`;
+    const activitiesTodayOptions   = _.cloneDeep(BASE_OPTIONS);
+    activitiesTodayOptions.url     = `${FITBIT_BASE_URL}/activities/date/today.json`;
+    const stepsOptions             = _.cloneDeep(BASE_OPTIONS);
+    stepsOptions.url               = `${FITBIT_BASE_URL}/activities/steps/date/today/7d.json`;
+    const veryActiveMinutesOptions = _.cloneDeep(BASE_OPTIONS);
+    veryActiveMinutesOptions.url   = `${FITBIT_BASE_URL}/activities/minutesVeryActive/date/today/7d.json`;
+    const activitiesOptions        = _.cloneDeep(BASE_OPTIONS);
+    activitiesOptions.url          = `${FITBIT_BASE_URL}/activities.json`;
 
-    // let options = {
-    //   url: 'https://api.fitbit.com/1/user/-/activities/date/today.json',
-    //   method: 'GET',
-    //   headers: {
-    //     "Authorization": `Bearer ${userCredentials.accessToken}`
-    //   }
-    // };
-
-
-    BRequest(fitbitRequests[4])
-      .spread((response, body) => {
-        // console.log(body);
-        res.status(500).json(body);
+    Promise.props({
+        profile: BRequest(profileOptions),
+        activitiesToday: BRequest(activitiesTodayOptions),
+        steps: BRequest(stepsOptions),
+        veryActiveMinutes: BRequest(veryActiveMinutesOptions),
+        activities: BRequest(activitiesOptions)
       })
-      .catch((error) => {
-        console.log(error);
-        res.status(500).send(error);
+      .then(results => {
+
+        let fitbitData = {
+          profile: results.profile[1],
+          activitiesToday: results.activitiesToday[1],
+          steps: results.steps[1],
+          veryActiveMinutes: results.veryActiveMinutes[1],
+          activities: results.activities[1]
+        };
+
+        res.status(200).send(fitbitData);
+      })
+      .catch(error => {
+        res.status(200).json(error);
       })
   });
 };

@@ -11,7 +11,6 @@ module.exports = (passport) => {
     scope: ['activity', 'profile'],
     callbackURL: 'http://localhost:8100/auth/fitbit/callback'
   }, (accessToken, refreshToken, profile, done) => {
-    // do stuff here... but what stuff?
 
     done(null, {
       accessToken: accessToken,
